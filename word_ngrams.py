@@ -16,7 +16,7 @@ def find_ngrams(tweets: List[str], n: int, top: int):
         tokens = tokenizer.tokenize(tweet, include_punc=True)
 
         for i in range(len(tokens) - n):
-            subwords = ' '.join(sorted(tokens[i:i+n]))
+            subwords = ' '.join(tokens[i:i+n])
             ngram_counter[subwords] += 1
 
     print(ngram_counter.most_common(top))
