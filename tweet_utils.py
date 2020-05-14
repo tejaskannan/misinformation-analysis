@@ -44,7 +44,7 @@ def get_tweets(tweet_file_path: str, should_remove_stopwords: bool = False) -> I
 
 def should_keep_token(token: str, should_remove_stopwords: bool) -> bool:
     return len(token) > 0 and len(token) <= MAX_WORD_LENGTH and (token not in STOPWORDS or not should_remove_stopwords) and \
-            not token.startswith('http') and not token.startswith('www')
+            not token.startswith('http') and not token.startswith('www') and not token == '#'
 
 
 def clean_tweet(tweet: str, should_remove_stopwords: bool = False) -> CleanedTweet:
