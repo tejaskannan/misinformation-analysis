@@ -10,6 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import AdaBoostClassifier, BaggingClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
+from sklearn.model_selection import cross_val_score
 from sklearn.metrics import f1_score, accuracy_score
 from typing import Tuple, List, Dict, Any, Iterable
 
@@ -85,6 +86,7 @@ def evaluate_model(model: BaggingClassifier, X: np.ndarray, y: np.ndarray) -> Di
     }
 
 
+
 def fit_model(X: np.ndarray, y: np.ndarray, n_estimators: int, model_name: str) -> Any:
 
     model_name = model_name.lower()
@@ -92,12 +94,31 @@ def fit_model(X: np.ndarray, y: np.ndarray, n_estimators: int, model_name: str) 
     if model_name == 'ada_boost':
         model = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=1),
                                    n_estimators=n_estimators)
-    elif model_name == 'logistic_regression':
-        model = BaggingClassifier(base_estimator=LogisticRegression(C=1.0),
+    elif model_name == 'random_forest':
+        model = BaggingClassifier(base_estimator=DecisionTreeClassifier(max_depth=3),
                                   n_estimators=n_estimators)
-    elif model_name == 'svm':
-        model = BaggingClassifier(base_estimator=SVC(C=1.0, kernel='sigmoid'),
+    elif model_name in ('logistic_regression', 'svm'):
+        # Select the best value using cross validation over the regularization parameter
+        C_values = [1.0, 0.75, 0.5, 0.25, 0.1]
+
+        model_cls = LogisticRegression if model_name == 'logistic_regression' else SVC
+
+        scores: List[float] = []
+        for C in C_values:
+            model = BaggingClassifier(base_estimator=model_cls(C=C),
+                                      n_estimators=n_estimators)
+            score = cross_val_score(model, X, y, cv=5)
+            scores.append(np.average(score))
+
+        best_index = np.argmax(scores)
+        best_C = C_values[best_index]
+        print('Best Regularization Value: {0}'.format(1.0 / best_C))
+
+        model = BaggingClassifier(base_estimator=model_cls(C=best_C),
                                   n_estimators=n_estimators)
+   # elif model_name == 'svm':
+   #     model = BaggingClassifier(base_estimator=SVC(C=1.0, kernel='sigmoid'),
+   #                               n_estimators=n_estimators)
     else:
         raise ValueError('Unknown model type: {0}'.format(model_name))
 

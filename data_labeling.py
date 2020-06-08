@@ -26,10 +26,10 @@ def label_data(tweets_file: str, output_file: str, num_samples: int, start_index
             except ValueError:
                 pass
 
-        if label in (0, 1):
+        if label in (0, 1, 2):
             dataset.append(dict(tweet=tweet.original, label=label, url=tweet.url))
             print('Dataset Size: {0}'.format(len(dataset)))
-        
+
         print('==========') 
 
     write_as_json_gz(dataset, output_file)
