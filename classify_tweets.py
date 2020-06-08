@@ -99,14 +99,15 @@ def fit_model(X: np.ndarray, y: np.ndarray, n_estimators: int, model_name: str) 
                                   n_estimators=n_estimators)
     elif model_name in ('logistic_regression', 'svm'):
         # Select the best value using cross validation over the regularization parameter
-        C_values = [1.0, 0.75, 0.5, 0.25, 0.1]
-
-        model_cls = LogisticRegression if model_name == 'logistic_regression' else SVC
+        C_values = [4.0, 2.0, 1.0, 0.75, 0.5, 0.25, 0.1]
 
         scores: List[float] = []
         for C in C_values:
-            model = BaggingClassifier(base_estimator=model_cls(C=C),
-                                      n_estimators=n_estimators)
+            if model_name == 'logistic_regression':
+                model = LogisticRegression(C=C)
+            else:
+                model = SVC(C=C, kernel='linear')
+
             score = cross_val_score(model, X, y, cv=5)
             scores.append(np.average(score))
 
@@ -114,11 +115,13 @@ def fit_model(X: np.ndarray, y: np.ndarray, n_estimators: int, model_name: str) 
         best_C = C_values[best_index]
         print('Best Regularization Value: {0}'.format(1.0 / best_C))
 
-        model = BaggingClassifier(base_estimator=model_cls(C=best_C),
+        if model_name == 'logistic_regression':
+            base_model = LogisticRegression(C=best_C)
+        else:
+            base_model = SVC(C=best_C, kernel='linear')
+
+        model = BaggingClassifier(base_estimator=base_model,
                                   n_estimators=n_estimators)
-   # elif model_name == 'svm':
-   #     model = BaggingClassifier(base_estimator=SVC(C=1.0, kernel='sigmoid'),
-   #                               n_estimators=n_estimators)
     else:
         raise ValueError('Unknown model type: {0}'.format(model_name))
 
